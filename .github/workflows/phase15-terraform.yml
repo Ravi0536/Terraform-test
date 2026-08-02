@@ -2,7 +2,12 @@ name: Phase 15 disposable Terraform validation
 
 on:
   pull_request:
-    branches: [main]
+    # tos-v3-pipeline-test is here so a PR targeting the test branch runs the
+    # same checks a PR into main does. Without it GitHub reports no checks at
+    # all for those PRs, and the pipeline stalls forever at Run checks with
+    # nothing to wait on - the check set is read from the BASE branch's
+    # workflow, so this entry has to live on the branch being targeted.
+    branches: [main, tos-v3-pipeline-test]
     paths:
       - 'generated/**'
   workflow_dispatch:
