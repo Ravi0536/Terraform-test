@@ -37,7 +37,7 @@ env:
   # The role this workflow assumes (created by aws-oidc-deployer.tf). It has
   # scoped access to the TOS-managed state bucket + the resources under management.
   TOS_DEPLOYER_ROLE: arn:aws:iam::346589946607:role/tos-github-actions-deployer
-  TERRAFORM_VERSION: "1.9.8"
+  TERRAFORM_VERSION: "1.15.5"
 
 jobs:
   terraform:
