@@ -1,0 +1,87 @@
+name: TOS Terraform Deploy
+
+# Customer-owned pipeline that deploys TOS-delivered Terraform to this AWS
+# account. TOS opens a PR with the generated config (+ a backend.tf pointing at
+# the TOS-managed state workspace); this workflow runs plan on the PR and apply
+# on merge to main. TOS can also trigger it directly via workflow_dispatch and
+# observes the run for governance/evidence.
+
+on:
+  workflow_dispatch:
+    inputs:
+      root_path:
+        description: "Terraform root directory to deploy (repo-relative)"
+        required: true
+        default: "generated/cloudtrail-adoption"
+  pull_request:
+    paths:
+      - "generated/**"
+  push:
+    branches: [main]
+    paths:
+      - "generated/**"
+
+permissions:
+  id-token: write        # required for AWS OIDC
+  contents: read
+  pull-requests: write   # to comment plan output back on the PR
+
+concurrency:
+  # One run per root at a time - the TOS-managed state lock is the source of
+  # truth, this just avoids obviously-racing runs.
+  group: tos-tf-${{ github.event.inputs.root_path || 'generated' }}
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  # The role this workflow assumes (created by aws-oidc-deployer.tf). It has
+  # scoped access to the TOS-managed state bucket + the resources under management.
+  TOS_DEPLOYER_ROLE: arn:aws:iam::346589946607:role/tos-github-actions-deployer
+  TERRAFORM_VERSION: "1.9.8"
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve root path
+        id: root
+        run: |
+          if [ -n "${{ github.event.inputs.root_path }}" ]; then
+            echo "path=${{ github.event.inputs.root_path }}" >> "$GITHUB_OUTPUT"
+          else
+            # For PR/push events, deploy every changed generated root. Kept simple
+            # here: default to the demo root; TOS delivers one root per PR.
+            echo "path=generated/cloudtrail-adoption" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.TOS_DEPLOYER_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: tos-gha-${{ github.run_id }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Init
+        working-directory: ${{ steps.root.outputs.path }}
+        # backend.tf is delivered by TOS in the PR (points at the TOS-managed
+        # state workspace for this root). No secrets are in it.
+        run: terraform init -input=false
+
+      - name: Terraform Plan
+        working-directory: ${{ steps.root.outputs.path }}
+        run: terraform plan -input=false -no-color -lock-timeout=120s
+
+      - name: Terraform Apply
+        # Apply only on merge to main (governed: TOS opened the PR, a human
+        # approved + merged). PRs and dispatch dry-runs stop at plan.
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: ${{ steps.root.outputs.path }}
+        run: terraform apply -input=false -auto-approve -lock-timeout=120s
