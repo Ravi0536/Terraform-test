@@ -1,57 +1,39 @@
-import {
-  to = module.cloudtrail_bucket.aws_s3_bucket.this
-  id = "tos-dev-cloudtrail-346589946607"
-}
+resource "aws_dynamodb_table" "tos_dev_agent_runs" {
+  name         = "tos-dev-agent-runs"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "PK"
+  range_key    = "SK"
 
-import {
-  to = module.cloudtrail_bucket.aws_s3_bucket_server_side_encryption_configuration.this[0]
-  id = "tos-dev-cloudtrail-346589946607"
-}
+  attribute {
+    name = "PK"
+    type = "S"
+  }
 
-import {
-  to = module.cloudtrail_bucket.aws_s3_bucket_public_access_block.this[0]
-  id = "tos-dev-cloudtrail-346589946607"
-}
+  attribute {
+    name = "SK"
+    type = "S"
+  }
 
-import {
-  to = module.cloudtrail_bucket.aws_s3_bucket_policy.this[0]
-  id = "tos-dev-cloudtrail-346589946607"
-}
+  point_in_time_recovery {
+    enabled = true
+  }
 
-import {
-  to = module.cloudtrail_bucket.aws_s3_bucket_lifecycle_configuration.this
-  id = "tos-dev-cloudtrail-346589946607"
-}
-
-import {
-  to = module.cloudtrail_bucket.aws_s3_bucket_ownership_controls.this
-  id = "tos-dev-cloudtrail-346589946607"
-}
-
-module "cloudtrail_bucket" {
-  source = "./modules/s3_bucket"
-
-  name = "tos-dev-cloudtrail-346589946607"
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = "arn:aws:kms:us-east-1:346589946607:key/4b9015e5-cf84-457f-9303-983f29f72b65"
+  }
 
   tags = {
     cost-center = "tos-dev"
     env         = "dev"
     managed-by  = "terraform"
     owner       = "ravindra.kande@gmail.com"
+    phase       = "4"
     service     = "tos"
   }
+}
 
-  server_side_encryption = {
-    bucket_key_enabled = false
-    sse_algorithm      = "AES256"
-  }
-
-  public_access_block = {
-    block_public_acls       = true
-    block_public_policy     = true
-    ignore_public_acls      = true
-    restrict_public_buckets = true
-  }
-
-  policy_document = "{\"Statement\":[{\"Action\":\"s3:GetBucketAcl\",\"Condition\":{\"StringEquals\":{\"aws:SourceArn\":\"arn:aws:cloudtrail:us-east-1:346589946607:trail/tos-dev-events\"}},\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cloudtrail.amazonaws.com\"},\"Resource\":\"arn:aws:s3:::tos-dev-cloudtrail-346589946607\",\"Sid\":\"AWSCloudTrailAclCheck\"},{\"Action\":\"s3:PutObject\",\"Condition\":{\"StringEquals\":{\"aws:SourceArn\":\"arn:aws:cloudtrail:us-east-1:346589946607:trail/tos-dev-events\",\"s3:x-amz-acl\":\"bucket-owner-full-control\"}},\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cloudtrail.amazonaws.com\"},\"Resource\":\"arn:aws:s3:::tos-dev-cloudtrail-346589946607/AWSLogs/346589946607/*\",\"Sid\":\"AWSCloudTrailWrite\"}],\"Version\":\"2012-10-17\"}"
+import {
+  to = aws_dynamodb_table.tos_dev_agent_runs
+  id = "tos-dev-agent-runs"
 }
