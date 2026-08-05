@@ -1,14 +1,9 @@
-output "cloudtrail_bucket_id" {
-  description = "ID of the CloudTrail S3 bucket"
-  value       = module.cloudtrail_bucket.id
+output "ecr_repository_url" {
+  description = "URL of the ECR repository"
+  value       = aws_ecr_repository.tos_dev_agentic.repository_url
 }
 
-output "cloudtrail_bucket_arn" {
-  description = "ARN of the CloudTrail S3 bucket"
-  value       = module.cloudtrail_bucket.arn
-}
-
-output "cloudtrail_bucket_name" {
-  description = "Name of the CloudTrail S3 bucket"
-  value       = module.cloudtrail_bucket.name
+output "ecr_repository_arn" {
+  description = "ARN of the ECR repository"
+  value       = aws_ecr_repository.tos_dev_agentic.arn
 }
