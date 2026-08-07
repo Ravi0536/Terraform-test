@@ -1,4 +1,4 @@
-resource "aws_sqs_queue" "payment_callback_dlq" {
-  name = "payment-callback-dlq"
+resource "aws_sqs_queue" "shipment_notify" {
+  name = "shipment-notify"
 }
 
