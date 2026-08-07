@@ -1,14 +1,25 @@
-resource "aws_sqs_queue" "shipment_notify" {
-  name                       = "shipment-notify"
-  visibility_timeout_seconds = 180
-  sqs_managed_sse_enabled    = true
+resource "aws_ecr_repository" "tos_dev_agentic" {
+  name                 = "tos-dev-agentic"
+  image_tag_mutability = "MUTABLE"
+
+  encryption_configuration {
+    encryption_type = "AES256"
+  }
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
 
   tags = {
-    drift_source = "manual-console-change"
+    cost-center = "tos-dev"
+    env         = "dev"
+    managed-by  = "terraform"
+    owner       = "ravindra.kande@gmail.com"
+    service     = "tos"
   }
 }
 
 import {
-  to = aws_sqs_queue.shipment_notify
-  id = "https://sqs.us-east-1.amazonaws.com/346589946607/shipment-notify"
+  to = aws_ecr_repository.tos_dev_agentic
+  id = "tos-dev-agentic"
 }
