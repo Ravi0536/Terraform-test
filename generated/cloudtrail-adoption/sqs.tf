@@ -22,3 +22,16 @@ resource "aws_sqs_queue" "tos_lane_jira_0821193034" {
     managed_by = "tos"
   }
 }
+
+resource "aws_sqs_queue" "tos_codify_proof_0821" {
+  name                    = "tos-codify-proof-0821"
+  sqs_managed_sse_enabled = true
+  tags = {
+    purpose = "codify-e2e-proof"
+  }
+}
+
+import {
+  to = aws_sqs_queue.tos_codify_proof_0821
+  id = "https://sqs.us-east-1.amazonaws.com/346589946607/tos-codify-proof-0821"
+}
