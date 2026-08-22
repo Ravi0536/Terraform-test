@@ -35,3 +35,17 @@ import {
   to = aws_sqs_queue.tos_codify_proof_0821
   id = "https://sqs.us-east-1.amazonaws.com/346589946607/tos-codify-proof-0821"
 }
+
+resource "aws_sqs_queue" "tos_jira_agentic_e2e" {
+  name                      = "tos-jira-agentic-e2e"
+  message_retention_seconds = 1209600
+  sqs_managed_sse_enabled   = true
+  tags = {
+    lane_drift_probe = "0822a"
+  }
+}
+
+import {
+  to = aws_sqs_queue.tos_jira_agentic_e2e
+  id = "https://sqs.us-east-1.amazonaws.com/346589946607/tos-jira-agentic-e2e"
+}
