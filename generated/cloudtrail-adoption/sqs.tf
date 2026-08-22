@@ -35,3 +35,16 @@ import {
   to = aws_sqs_queue.tos_codify_proof_0821
   id = "https://sqs.us-east-1.amazonaws.com/346589946607/tos-codify-proof-0821"
 }
+
+import {
+  to = module.aws_sqs_queue.aws_sqs_queue.this
+  id = "https://sqs.us-east-1.amazonaws.com/346589946607/tos-codify-proof-0821b"
+}
+
+module "aws_sqs_queue" {
+  source = "./modules/aws_sqs_queue"
+  name   = "tos-codify-proof-0821b"
+  tags = {
+    purpose = "codify-e2e-proof"
+  }
+}
