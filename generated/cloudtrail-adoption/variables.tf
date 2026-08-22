@@ -296,3 +296,130 @@ variable "firehose_failure_feedback_role_arn" {
   type        = string
   default     = null
 }
+
+variable "queue_name" {
+  description = "Name of the SQS queue. Must be 1–80 characters using uppercase and lowercase ASCII letters, numbers, underscores, and hyphens. FIFO queues must end with '.fifo'."
+  type        = string
+  default     = "tos-lane-jira-0821234621"
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9_-]{1,80}(\\.fifo)?$", var.queue_name))
+    error_message = "Queue name must be 1–80 characters of letters, numbers, underscores, or hyphens (optionally ending in .fifo for FIFO queues)."
+  }
+}
+
+
+variable "deduplication_scope" {
+  description = "Specifies whether message deduplication occurs at the message group or queue level. Valid values: 'messageGroup', 'queue'."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.deduplication_scope == null || contains(["messageGroup", "queue"], var.deduplication_scope)
+    error_message = "deduplication_scope must be 'messageGroup' or 'queue' when set."
+  }
+}
+
+variable "delay_seconds" {
+  description = "Time in seconds that delivery of all messages in the queue will be delayed. Valid values: 0–900."
+  type        = number
+  default     = 0
+
+  validation {
+    condition     = var.delay_seconds >= 0 && var.delay_seconds <= 900
+    error_message = "delay_seconds must be between 0 and 900."
+  }
+}
+
+variable "fifo_queue" {
+  description = "Boolean designating a FIFO queue. If false, a standard queue is created."
+  type        = bool
+  default     = false
+}
+
+variable "fifo_throughput_limit" {
+  description = "Specifies whether the FIFO queue throughput quota applies to the entire queue or per message group. Valid values: 'perQueue', 'perMessageGroupId'."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.fifo_throughput_limit == null || contains(["perQueue", "perMessageGroupId"], var.fifo_throughput_limit)
+    error_message = "fifo_throughput_limit must be 'perQueue' or 'perMessageGroupId' when set."
+  }
+}
+
+variable "kms_data_key_reuse_period_seconds" {
+  description = "Length of time in seconds for which Amazon SQS can reuse a data key to encrypt or decrypt messages. Valid values: 60–86400."
+  type        = number
+  default     = null
+
+  validation {
+    condition     = var.kms_data_key_reuse_period_seconds == null || (var.kms_data_key_reuse_period_seconds >= 60 && var.kms_data_key_reuse_period_seconds <= 86400)
+    error_message = "kms_data_key_reuse_period_seconds must be between 60 and 86400 when set."
+  }
+}
+
+
+variable "max_message_size" {
+  description = "Limit of how many bytes a message can contain before Amazon SQS rejects it. Valid values: 1024–1048576."
+  type        = number
+  default     = 262144
+
+  validation {
+    condition     = var.max_message_size >= 1024 && var.max_message_size <= 1048576
+    error_message = "max_message_size must be between 1024 (1 KiB) and 1048576 (1024 KiB)."
+  }
+}
+
+variable "message_retention_seconds" {
+  description = "Number of seconds Amazon SQS retains a message. Valid values: 60–1209600."
+  type        = number
+  default     = 345600
+
+  validation {
+    condition     = var.message_retention_seconds >= 60 && var.message_retention_seconds <= 1209600
+    error_message = "message_retention_seconds must be between 60 (1 minute) and 1209600 (14 days)."
+  }
+}
+
+
+variable "receive_wait_time_seconds" {
+  description = "Time for which a ReceiveMessage call will wait for a message to arrive (long polling) before returning. Valid values: 0–20."
+  type        = number
+  default     = 0
+
+  validation {
+    condition     = var.receive_wait_time_seconds >= 0 && var.receive_wait_time_seconds <= 20
+    error_message = "receive_wait_time_seconds must be between 0 and 20."
+  }
+}
+
+variable "redrive_allow_policy" {
+  description = "JSON policy to set up the Dead Letter Queue redrive permission. When set, Terraform performs drift detection on this value."
+  type        = string
+  default     = null
+}
+
+variable "redrive_policy" {
+  description = "JSON policy to configure a Dead Letter Queue. When set, Terraform performs drift detection on this value."
+  type        = string
+  default     = null
+}
+
+variable "sqs_managed_sse_enabled" {
+  description = "Boolean to enable server-side encryption (SSE) of message content with SQS-owned encryption keys."
+  type        = bool
+  default     = null
+}
+
+
+variable "visibility_timeout_seconds" {
+  description = "Visibility timeout for the queue in seconds. Valid values: 0–43200."
+  type        = number
+  default     = 30
+
+  validation {
+    condition     = var.visibility_timeout_seconds >= 0 && var.visibility_timeout_seconds <= 43200
+    error_message = "visibility_timeout_seconds must be between 0 and 43200 (12 hours)."
+  }
+}
